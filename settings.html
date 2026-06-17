@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الإعدادات - لوحة الإدارة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Cairo', sans-serif; background: #f0f4f8; direction: rtl; display: flex; height: 100vh; overflow: hidden; }
+    :root { --ocean: #0a2342; --ocean-light: #2e86c1; --teal: #0e9f9f; --coral: #e74c3c; --green: #27ae60; --border: #e0e8f0; --text: #0a2342; --muted: #6b8cae; --bg: #f0f4f8; }
+    a { text-decoration: none; color: inherit; }
+    .sidebar { width: 240px; background: var(--ocean); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+    .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo h1 { font-size: 16px; font-weight: 700; }
+    .sidebar-logo p { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+    .nav-section { padding: 16px 12px 8px; font-size: 10px; font-weight: 700; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; margin: 2px 8px; font-size: 13px; cursor: pointer; transition: background 0.2s; color: rgba(255,255,255,0.75); }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+    .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .topbar { background: white; border-bottom: 1px solid var(--border); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .topbar h2 { font-size: 17px; font-weight: 700; color: var(--text); }
+    .content { padding: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+    .panel { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+    .panel.full { grid-column: 1/-1; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .panel-header h3 { font-size: 14px; font-weight: 700; }
+    .panel-body { padding: 20px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 13px; outline: none; color: var(--text); background: var(--bg); transition: border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--ocean-light); background: white; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label h4 { font-size: 13px; font-weight: 600; }
+    .toggle-label p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .toggle { width: 44px; height: 24px; background: var(--border); border-radius: 12px; cursor: pointer; position: relative; transition: background 0.3s; flex-shrink: 0; }
+    .toggle.on { background: var(--teal); }
+    .toggle::after { content: ''; width: 18px; height: 18px; background: white; border-radius: 50%; position: absolute; top: 3px; right: 3px; transition: right 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle.on::after { right: calc(100% - 21px); }
+
+    .save-btn { background: var(--teal); color: white; border: none; border-radius: 8px; padding: 10px 24px; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 16px; }
+    .save-btn:hover { background: #0b8888; }
+    .danger-btn { background: #fde8e8; color: var(--coral); border: 1px solid #f5b7b1; border-radius: 8px; padding: 10px 20px; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; }
+
+    .color-row { display: flex; gap: 10px; align-items: center; }
+    .color-swatch { width: 36px; height: 36px; border-radius: 8px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; }
+    .color-active { border-color: var(--ocean); box-shadow: 0 0 0 3px rgba(10,35,66,0.15); }
+
+    .api-key-field { display: flex; gap: 8px; }
+    .api-key-field input { flex: 1; }
+    .show-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0 14px; cursor: pointer; font-size: 16px; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0a2342; color: white; padding: 12px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>🌊 البيئة البحرية</h1><p>لوحة الإدارة</p></div>
+    <div class="nav-section">القائمة الرئيسية</div>
+    <a href="dashboard.html" class="nav-item"><span>📊</span> لوحة التحكم</a>
+    <a href="articles.html" class="nav-item"><span>📰</span> المقالات</a>
+    <a href="comments.html" class="nav-item"><span>💬</span> التعليقات</a>
+    <a href="breaking.html" class="nav-item"><span>🔴</span> أخبار عاجلة</a>
+    <div class="nav-section">الإدارة</div>
+    <a href="users.html" class="nav-item"><span>👥</span> المستخدمون</a>
+    <a href="permissions.html" class="nav-item"><span>🔐</span> الصلاحيات</a>
+    <a href="settings.html" class="nav-item active"><span>⚙️</span> الإعدادات</a>
+    <div class="nav-section">الذكاء الاصطناعي</div>
+    <a href="ai.html" class="nav-item"><span>🤖</span> خدمات الذكاء</a>
+    <div class="sidebar-footer"><div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:16px">👤</div><div><div style="font-size:13px;font-weight:600">المدير</div><div style="font-size:11px;opacity:.5">admin@marine-eco.ma</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2>⚙️ إعدادات الموقع</h2>
+      <button onclick="saveAll()" style="background:var(--teal);color:white;border:none;border-radius:8px;padding:8px 20px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer">💾 حفظ كل الإعدادات</button>
+    </div>
+    <div class="content">
+
+      <!-- GENERAL SETTINGS -->
+      <div class="panel">
+        <div class="panel-header"><h3>🌐 الإعدادات العامة</h3></div>
+        <div class="panel-body">
+          <div class="form-group"><label>اسم الموقع</label><input type="text" id="site-name" value="البيئة البحرية" /></div>
+          <div class="form-group"><label>شعار الموقع (إيموجي)</label><input type="text" id="site-icon" value="🌊" maxlength="2" /></div>
+          <div class="form-group"><label>وصف الموقع</label><textarea id="site-desc">منصة إخبارية متخصصة في أخبار البيئة البحرية والمحيطات</textarea></div>
+          <div class="form-group"><label>اللغة الافتراضية</label>
+            <select id="default-lang">
+              <option value="ar" selected>العربية</option>
+              <option value="fr">الفرنسية</option>
+              <option value="en">الإنجليزية</option>
+            </select>
+          </div>
+          <div class="form-group"><label>عدد المقالات في الصفحة</label><input type="number" id="articles-per-page" value="12" min="5" max="50" /></div>
+          <button class="save-btn" onclick="showToast('✅ تم حفظ الإعدادات العامة')">💾 حفظ</button>
+        </div>
+      </div>
+
+      <!-- APPEARANCE -->
+      <div class="panel">
+        <div class="panel-header"><h3>🎨 المظهر والألوان</h3></div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label>اللون الرئيسي</label>
+            <div class="color-row">
+              <div class="color-swatch color-active" style="background:#0a2342" onclick="selectColor(this, '#0a2342')"></div>
+              <div class="color-swatch" style="background:#1a5276" onclick="selectColor(this, '#1a5276')"></div>
+              <div class="color-swatch" style="background:#0e9f9f" onclick="selectColor(this, '#0e9f9f')"></div>
+              <div class="color-swatch" style="background:#1a7a5e" onclick="selectColor(this, '#1a7a5e')"></div>
+              <div class="color-swatch" style="background:#6c3483" onclick="selectColor(this, '#6c3483')"></div>
+              <input type="color" value="#0a2342" id="custom-color" style="width:36px;height:36px;border-radius:8px;border:2px solid var(--border);cursor:pointer;padding:2px" />
+            </div>
+          </div>
+          <div class="form-group"><label>الخط الافتراضي</label>
+            <select>
+              <option>Cairo</option>
+              <option>Tajawal</option>
+              <option>Noto Naskh Arabic</option>
+            </select>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>الوضع الليلي</h4><p>تفعيل المظهر الداكن</p></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>صور الغلاف</h4><p>عرض صور في بطاقات الأخبار</p></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <button class="save-btn" onclick="showToast('✅ تم حفظ إعدادات المظهر')">💾 حفظ</button>
+        </div>
+      </div>
+
+      <!-- AI SETTINGS -->
+      <div class="panel">
+        <div class="panel-header"><h3>🤖 إعدادات الذكاء الاصطناعي</h3></div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label>مفتاح API للذكاء الاصطناعي</label>
+            <div class="api-key-field">
+              <input type="password" id="api-key" value="sk-ant-••••••••••••••••" />
+              <button class="show-btn" onclick="toggleApiKey()">👁️</button>
+            </div>
+          </div>
+          <div class="form-group"><label>نموذج الذكاء الاصطناعي</label>
+            <select>
+              <option>claude-sonnet-4-6</option>
+              <option>claude-haiku-4-5-20251001</option>
+            </select>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>مراجعة التعليقات آلياً</h4><p>استخدام AI لفحص التعليقات</p></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>اقتراح المقالات</h4><p>توليد عناوين مقترحة تلقائياً</p></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>الترجمة التلقائية</h4><p>ترجمة المقالات لجميع اللغات</p></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <button class="save-btn" onclick="showToast('✅ تم حفظ إعدادات الذكاء الاصطناعي')">💾 حفظ</button>
+        </div>
+      </div>
+
+      <!-- SYSTEM -->
+      <div class="panel">
+        <div class="panel-header"><h3>🔧 إعدادات النظام</h3></div>
+        <div class="panel-body">
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>وضع الصيانة</h4><p>إيقاف الموقع مؤقتاً للصيانة</p></div>
+            <div class="toggle" onclick="this.classList.toggle('on'); showToast('⚠️ تم تغيير وضع الصيانة')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>التسجيل المفتوح</h4><p>السماح للزوار بإنشاء حسابات</p></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>التعليقات مفعلة</h4><p>السماح بإضافة التعليقات</p></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>مراجعة التعليقات</h4><p>مراجعة يدوية قبل النشر</p></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border)">
+            <button class="danger-btn" onclick="if(confirm('هل أنت متأكد؟')) showToast('🗑️ تم مسح البيانات المؤقتة')">🗑️ مسح البيانات المؤقتة</button>
+            <button class="danger-btn" style="background:#fff5f5;color:#c0392b;border-color:#e74c3c" onclick="if(confirm('تحذير: هذا الإجراء لا يمكن التراجع عنه!')) showToast('💾 تم تصدير نسخة احتياطية')">💾 تصدير نسخة احتياطية</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMAIL SETTINGS -->
+      <div class="panel full">
+        <div class="panel-header"><h3>📧 إعدادات البريد الإلكتروني</h3></div>
+        <div class="panel-body" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+          <div class="form-group"><label>بريد الإرسال</label><input type="email" value="no-reply@marine-eco.ma" /></div>
+          <div class="form-group"><label>خادم SMTP</label><input type="text" value="smtp.marine-eco.ma" /></div>
+          <div class="form-group"><label>منفذ SMTP</label><input type="number" value="587" /></div>
+          <div class="form-group"><label>اسم المرسل</label><input type="text" value="البيئة البحرية" /></div>
+          <div class="form-group"><label>بريد الدعم</label><input type="email" value="contact@marine-eco.ma" /></div>
+          <div class="form-group" style="display:flex;align-items:flex-end">
+            <button onclick="showToast('📧 تم إرسال رسالة اختبار')" style="background:var(--ocean-light);color:white;border:none;border-radius:8px;padding:10px 20px;font-family:'Cairo',sans-serif;font-size:13px;cursor:pointer;width:100%">📧 اختبار الاتصال</button>
+          </div>
+        </div>
+        <div style="padding:0 20px 20px">
+          <button class="save-btn" onclick="showToast('✅ تم حفظ إعدادات البريد')">💾 حفظ إعدادات البريد</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    function toggleApiKey() {
+      const input = document.getElementById('api-key');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function selectColor(el, color) {
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('color-active'));
+      el.classList.add('color-active');
+    }
+
+    function saveAll() {
+      showToast('✅ تم حفظ جميع الإعدادات بنجاح');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

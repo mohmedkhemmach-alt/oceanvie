@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تسجيل الدخول - البيئة البحرية</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" />
+  <style>
+    body { min-height: 100vh; display: flex; flex-direction: column; background: linear-gradient(135deg, var(--ocean-deep) 0%, var(--ocean-mid) 100%); }
+    .login-page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .login-card {
+      background: white; border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 420px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+    }
+    .login-logo { text-align: center; margin-bottom: 32px; }
+    .login-logo .icon { font-size: 48px; display: block; margin-bottom: 8px; }
+    .login-logo h1 { font-size: 22px; font-weight: 700; color: var(--ocean-deep); }
+    .login-logo p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .tabs { display: flex; gap: 4px; background: var(--ocean-foam); border-radius: 10px; padding: 4px; margin-bottom: 28px; }
+    .tab { flex: 1; padding: 9px; text-align: center; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--text-muted); border: none; background: transparent; font-family: var(--font); }
+    .tab.active { background: white; color: var(--ocean-deep); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
+    .form-group input {
+      width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+      font-family: var(--font); font-size: 14px; outline: none; color: var(--text-dark); background: var(--ocean-foam);
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--ocean-light); background: white; }
+    .form-group input::placeholder { color: var(--text-muted); }
+    .forgot { font-size: 12px; color: var(--ocean-light); float: left; cursor: pointer; }
+    .submit-btn {
+      width: 100%; padding: 14px; background: var(--ocean-deep); color: white;
+      border: none; border-radius: 10px; font-family: var(--font); font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s; margin-top: 8px;
+    }
+    .submit-btn:hover { background: var(--ocean-light); }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .divider span { font-size: 12px; color: var(--text-muted); }
+    .social-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .social-btn {
+      padding: 11px; border: 1px solid var(--border); border-radius: 9px; background: white;
+      font-family: var(--font); font-size: 13px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .social-btn:hover { background: var(--ocean-foam); }
+    .register-form { display: none; }
+    .error-msg { background: #fde8e8; color: #c0392b; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+    .success-msg { background: #e8f8f5; color: #1a7a5e; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo"><span class="logo-icon">🌊</span><span>البيئة البحرية</span></a>
+    </div>
+  </nav>
+
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="icon">🌊</span>
+        <h1>البيئة البحرية</h1>
+        <p>منصة أخبار البيئة البحرية والمحيطات</p>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('login', this)">تسجيل الدخول</button>
+        <button class="tab" onclick="showTab('register', this)">إنشاء حساب</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="login-form" id="login-form">
+        <div class="error-msg" id="login-error"></div>
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" id="login-email" placeholder="example@email.com" />
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور <span class="forgot" onclick="forgotPwd()">نسيت كلمة المرور؟</span></label>
+          <input type="password" id="login-pwd" placeholder="••••••••" />
+        </div>
+        <button class="submit-btn" onclick="handleLogin()">تسجيل الدخول</button>
+        <div class="divider"><span>أو</span></div>
+        <div class="social-btns">
+          <button class="social-btn">🔵 Google</button>
+          <button class="social-btn">🔷 Facebook</button>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="register-form" id="register-form">
+        <div class="success-msg" id="reg-success"></div>
+        <div class="form-group">
+          <label>الاسم الكامل</label>
+          <input type="text" id="reg-name" placeholder="محمد الأمين" />
+        </div>
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" id="reg-email" placeholder="example@email.com" />
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" id="reg-pwd" placeholder="8 أحرف على الأقل" />
+        </div>
+        <button class="submit-btn" onclick="handleRegister()">إنشاء الحساب</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tab, btn) {
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+    }
+
+    function handleLogin() {
+      const email = document.getElementById('login-email').value;
+      const pwd = document.getElementById('login-pwd').value;
+      const err = document.getElementById('login-error');
+      if (!email || !pwd) { err.textContent = '⚠️ يرجى ملء جميع الحقول'; err.style.display = 'block'; return; }
+      // Demo: redirect to admin if admin email
+      if (email === 'admin@marine-eco.ma') { location.href = '../admin/dashboard.html'; return; }
+      err.style.display = 'none';
+      location.href = 'index.html';
+    }
+
+    function handleRegister() {
+      const name = document.getElementById('reg-name').value;
+      const email = document.getElementById('reg-email').value;
+      const pwd = document.getElementById('reg-pwd').value;
+      const suc = document.getElementById('reg-success');
+      if (!name || !email || !pwd) return;
+      if (pwd.length < 8) { alert('كلمة المرور يجب أن تكون 8 أحرف على الأقل'); return; }
+      suc.textContent = '✅ تم إنشاء حسابك بنجاح! جارٍ التوجيه...';
+      suc.style.display = 'block';
+      setTimeout(() => location.href = 'index.html', 1800);
+    }
+
+    function forgotPwd() { alert('سيتم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني'); }
+  </script>
+</body>
+</html>

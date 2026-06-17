@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الأخبار العاجلة - لوحة الإدارة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Cairo', sans-serif; background: #f0f4f8; direction: rtl; display: flex; height: 100vh; overflow: hidden; }
+    :root { --ocean: #0a2342; --ocean-light: #2e86c1; --teal: #0e9f9f; --coral: #e74c3c; --green: #27ae60; --border: #e0e8f0; --text: #0a2342; --muted: #6b8cae; --bg: #f0f4f8; }
+    a { text-decoration: none; color: inherit; }
+    .sidebar { width: 240px; background: var(--ocean); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+    .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo h1 { font-size: 16px; font-weight: 700; }
+    .sidebar-logo p { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+    .nav-section { padding: 16px 12px 8px; font-size: 10px; font-weight: 700; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; margin: 2px 8px; font-size: 13px; cursor: pointer; transition: background 0.2s; color: rgba(255,255,255,0.75); }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+    .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .topbar { background: white; border-bottom: 1px solid var(--border); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .topbar h2 { font-size: 17px; font-weight: 700; color: var(--text); }
+    .content { padding: 28px; max-width: 800px; }
+
+    .ticker-preview { background: var(--coral); color: white; padding: 14px 20px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; gap: 12px; margin-bottom: 24px; overflow: hidden; }
+    .ticker-label-box { background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 6px; font-weight: 700; flex-shrink: 0; }
+    .ticker-text { white-space: nowrap; animation: ticker 20s linear infinite; }
+    @keyframes ticker { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+    .panel { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .panel-header h3 { font-size: 15px; font-weight: 700; }
+    .panel-body { padding: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 13px; outline: none; color: var(--text); background: var(--bg); transition: border-color 0.2s; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--ocean-light); background: white; }
+
+    .char-count { font-size: 11px; color: var(--muted); text-align: left; margin-top: 4px; }
+    .btn-primary { background: var(--coral); color: white; border: none; border-radius: 8px; padding: 11px 24px; font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 11px 20px; font-family: 'Cairo', sans-serif; font-size: 13px; cursor: pointer; }
+
+    .breaking-list { display: flex; flex-direction: column; gap: 10px; }
+    .breaking-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: white; }
+    .breaking-item.active-item { border-color: var(--coral); background: #fff8f8; }
+    .active-badge { background: var(--coral); color: white; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+    .breaking-text { flex: 1; font-size: 13px; color: var(--text); }
+    .breaking-date { font-size: 11px; color: var(--muted); }
+    .item-actions { display: flex; gap: 6px; }
+    .set-active-btn { background: var(--coral); color: white; border: none; border-radius: 6px; padding: 5px 12px; font-family: 'Cairo', sans-serif; font-size: 11px; cursor: pointer; }
+    .del-btn { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 12px; }
+    .del-btn:hover { border-color: var(--coral); color: var(--coral); }
+
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label h4 { font-size: 13px; font-weight: 600; }
+    .toggle-label p { font-size: 11px; color: var(--muted); }
+    .toggle { width: 44px; height: 24px; background: var(--border); border-radius: 12px; cursor: pointer; position: relative; transition: background 0.3s; }
+    .toggle.on { background: var(--teal); }
+    .toggle::after { content: ''; width: 18px; height: 18px; background: white; border-radius: 50%; position: absolute; top: 3px; right: 3px; transition: right 0.3s; }
+    .toggle.on::after { right: calc(100% - 21px); }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0a2342; color: white; padding: 12px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>🌊 البيئة البحرية</h1><p>لوحة الإدارة</p></div>
+    <div class="nav-section">القائمة الرئيسية</div>
+    <a href="dashboard.html" class="nav-item"><span>📊</span> لوحة التحكم</a>
+    <a href="articles.html" class="nav-item"><span>📰</span> المقالات</a>
+    <a href="comments.html" class="nav-item"><span>💬</span> التعليقات</a>
+    <a href="breaking.html" class="nav-item active"><span>🔴</span> أخبار عاجلة</a>
+    <div class="nav-section">الإدارة</div>
+    <a href="users.html" class="nav-item"><span>👥</span> المستخدمون</a>
+    <a href="permissions.html" class="nav-item"><span>🔐</span> الصلاحيات</a>
+    <a href="settings.html" class="nav-item"><span>⚙️</span> الإعدادات</a>
+    <div class="nav-section">الذكاء الاصطناعي</div>
+    <a href="ai.html" class="nav-item"><span>🤖</span> خدمات الذكاء</a>
+    <div class="sidebar-footer"><div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:16px">👤</div><div><div style="font-size:13px;font-weight:600">المدير</div><div style="font-size:11px;opacity:.5">admin@marine-eco.ma</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2>🔴 إدارة الأخبار العاجلة</h2>
+    </div>
+    <div class="content">
+
+      <!-- LIVE PREVIEW -->
+      <div class="ticker-preview">
+        <span class="ticker-label-box">عاجل</span>
+        <span class="ticker-text" id="ticker-preview-text">🔴 ارتفاع درجة حرارة المحيطات بنسبة 2.1 درجة خلال العقد الماضي</span>
+      </div>
+
+      <!-- ADD NEW -->
+      <div class="panel">
+        <div class="panel-header"><h3>➕ إضافة خبر عاجل جديد</h3></div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label>نص الخبر العاجل</label>
+            <input type="text" id="new-breaking" placeholder="أدخل نص الخبر العاجل..." oninput="updatePreview(this.value)" maxlength="200" />
+            <div class="char-count"><span id="char-count">0</span>/200</div>
+          </div>
+          <div class="form-group">
+            <label>الأولوية</label>
+            <select id="new-priority">
+              <option value="high">🔴 عاجل جداً</option>
+              <option value="medium">🟡 مهم</option>
+              <option value="low">🔵 عادي</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="btn-primary" onclick="addBreaking()">🚨 نشر الخبر العاجل</button>
+            <button class="btn-secondary" onclick="generateWithAI()">🤖 توليد بالذكاء الاصطناعي</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE BREAKING NEWS -->
+      <div class="panel">
+        <div class="panel-header"><h3>📋 الأخبار العاجلة</h3></div>
+        <div class="panel-body">
+          <div class="breaking-list" id="breaking-list"></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="panel">
+        <div class="panel-header"><h3>⚙️ إعدادات شريط الأخبار</h3></div>
+        <div class="panel-body">
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>تفعيل شريط الأخبار العاجلة</h4><p>عرض شريط الأخبار المتحرك على الصفحة الرئيسية</p></div>
+            <div class="toggle on" id="toggle-ticker" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>وضع عاجل احمر</h4><p>تمييز الخبر باللون الأحمر المتميز</p></div>
+            <div class="toggle on" id="toggle-red" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label"><h4>إشعارات للمستخدمين</h4><p>إرسال إشعار للمستخدمين المسجلين عند نشر خبر عاجل</p></div>
+            <div class="toggle" id="toggle-notif" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let breakingNews = [
+      { id:1, text:"🔴 ارتفاع درجة حرارة المحيطات بنسبة 2.1 درجة خلال العقد الماضي", priority:"high", date:"١٥ يناير ٢٠٢٥", active:true },
+      { id:2, text:"🔴 اكتشاف شعاب مرجانية جديدة في البحر الأحمر", priority:"medium", date:"١٢ يناير ٢٠٢٥", active:false },
+      { id:3, text:"🔴 اجتماع دولي لمناقشة تلوث البلاستيك في المحيط الهادئ", priority:"medium", date:"١٠ يناير ٢٠٢٥", active:false },
+      { id:4, text:"🔴 حملة تنظيف شواطئ المغرب تزيل 50 طناً من النفايات", priority:"low", date:"٨ يناير ٢٠٢٥", active:false },
+    ];
+
+    function updatePreview(val) {
+      document.getElementById('char-count').textContent = val.length;
+      if (val) document.getElementById('ticker-preview-text').textContent = val;
+    }
+
+    function render() {
+      const list = document.getElementById('breaking-list');
+      list.innerHTML = breakingNews.map(b => `
+        <div class="breaking-item ${b.active ? 'active-item' : ''}">
+          ${b.active ? '<span class="active-badge">● نشط</span>' : ''}
+          <div style="flex:1">
+            <div class="breaking-text">${b.text}</div>
+            <div class="breaking-date">${b.date}</div>
+          </div>
+          <div class="item-actions">
+            ${!b.active ? `<button class="set-active-btn" onclick="setActive(${b.id})">تفعيل</button>` : ''}
+            <button class="del-btn" onclick="deleteBreaking(${b.id})">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+      const active = breakingNews.find(b => b.active);
+      if (active) document.getElementById('ticker-preview-text').textContent = active.text;
+    }
+
+    function addBreaking() {
+      const text = document.getElementById('new-breaking').value.trim();
+      if (!text) { alert('يرجى إدخال نص الخبر العاجل'); return; }
+      breakingNews.forEach(b => b.active = false);
+      breakingNews.unshift({ id: Date.now(), text, priority: document.getElementById('new-priority').value, date: 'الآن', active: true });
+      document.getElementById('new-breaking').value = '';
+      document.getElementById('char-count').textContent = '0';
+      render();
+      showToast('🔴 تم نشر الخبر العاجل بنجاح');
+    }
+
+    function setActive(id) {
+      breakingNews.forEach(b => b.active = b.id === id);
+      render();
+      showToast('✅ تم تفعيل الخبر العاجل');
+    }
+
+    function deleteBreaking(id) {
+      breakingNews = breakingNews.filter(b => b.id !== id);
+      render();
+      showToast('🗑️ تم حذف الخبر العاجل');
+    }
+
+    async function generateWithAI() {
+      const btn = event.target;
+      btn.textContent = '⏳ جارٍ التوليد...';
+      btn.disabled = true;
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6', max_tokens: 150,
+            messages: [{ role: 'user', content: 'اكتب خبراً عاجلاً قصيراً عن البيئة البحرية باللغة العربية (أقل من 100 حرف). أجب بالنص فقط بدون تعليقات.' }]
+          })
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text?.trim() || '';
+        document.getElementById('new-breaking').value = '🔴 ' + text;
+        updatePreview('🔴 ' + text);
+        showToast('🤖 تم توليد الخبر بالذكاء الاصطناعي');
+      } catch {
+        showToast('❌ تعذر الاتصال بالذكاء الاصطناعي');
+      }
+      btn.textContent = '🤖 توليد بالذكاء الاصطناعي';
+      btn.disabled = false;
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    render();
+  </script>
+</body>
+</html>

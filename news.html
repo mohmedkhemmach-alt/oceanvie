@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الأخبار - البيئة البحرية</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" />
+  <style>
+    .page-header { background: linear-gradient(135deg, var(--ocean-deep), var(--ocean-mid)); padding: 48px 24px; text-align: center; }
+    .page-header h1 { color: white; font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .page-header p { color: rgba(255,255,255,0.75); font-size: 15px; }
+    .filters { background: white; border-bottom: 1px solid var(--border); padding: 16px 24px; }
+    .filters-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .filter-btn {
+      padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--border); background: white; color: var(--text-muted); transition: all 0.2s; font-family: var(--font);
+    }
+    .filter-btn.active, .filter-btn:hover { background: var(--ocean-light); color: white; border-color: var(--ocean-light); }
+    .search-box {
+      margin-right: auto; display: flex; align-items: center; gap: 8px;
+      background: var(--ocean-foam); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px;
+    }
+    .search-box input { border: none; background: transparent; font-family: var(--font); font-size: 14px; outline: none; color: var(--text-dark); width: 200px; }
+    .news-page { padding: 40px 24px; }
+    .news-page-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+    .featured-article {
+      max-width: 1200px; margin: 0 auto 32px; background: white; border-radius: var(--radius);
+      border: 1px solid var(--border); overflow: hidden; display: grid; grid-template-columns: 1.4fr 1fr;
+    }
+    .featured-img { background: linear-gradient(135deg, var(--ocean-deep), var(--teal)); display: flex; align-items: center; justify-content: center; font-size: 80px; min-height: 260px; }
+    .featured-body { padding: 32px; }
+    .featured-body .news-tag { margin-bottom: 12px; }
+    .featured-body h2 { font-size: 22px; font-weight: 700; color: var(--text-dark); margin-bottom: 12px; line-height: 1.5; }
+    .featured-body p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 20px; }
+    .no-results { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 16px; }
+    @media (max-width: 768px) { .featured-article { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo"><span class="logo-icon">🌊</span><span>البيئة البحرية</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html">الرئيسية</a></li>
+        <li><a href="news.html" class="active">الأخبار</a></li>
+        <li><a href="map.html">الخريطة</a></li>
+        <li><a href="chatbot.html">الذكاء الاصطناعي</a></li>
+        <li><a href="comments.html">التعليقات</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="lang-switcher">
+          <button onclick="setLang('ar')" class="lang-btn active">AR</button>
+          <button onclick="setLang('fr')" class="lang-btn">FR</button>
+          <button onclick="setLang('en')" class="lang-btn">EN</button>
+        </div>
+        <a href="login.html" class="btn-login">تسجيل الدخول</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>🗞️ الأخبار البحرية</h1>
+    <p>آخر الأخبار والتقارير حول البيئة البحرية والمحيطات</p>
+  </div>
+
+  <div class="filters">
+    <div class="filters-inner">
+      <button class="filter-btn active" onclick="filterNews('all', this)">الكل</button>
+      <button class="filter-btn" onclick="filterNews('تلوث', this)">تلوث</button>
+      <button class="filter-btn" onclick="filterNews('تنوع بيولوجي', this)">تنوع بيولوجي</button>
+      <button class="filter-btn" onclick="filterNews('تغير مناخي', this)">تغير مناخي</button>
+      <button class="filter-btn" onclick="filterNews('حماية', this)">حماية</button>
+      <button class="filter-btn" onclick="filterNews('أبحاث', this)">أبحاث</button>
+      <div class="search-box" style="margin-right: auto;">
+        <span>🔍</span>
+        <input type="text" id="search-input" placeholder="ابحث عن خبر..." oninput="searchNews(this.value)" />
+      </div>
+    </div>
+  </div>
+
+  <section class="news-page">
+    <div class="featured-article" id="featured">
+      <div class="featured-img">🌊</div>
+      <div class="featured-body">
+        <span class="news-tag">أبحاث</span>
+        <h2>العلماء يكشفون عن خريطة شاملة لتيارات المحيط العالمي لأول مرة في التاريخ</h2>
+        <p>مشروع بحثي ضخم يضم 47 دولة يقدم أول خريطة ثلاثية الأبعاد لتيارات المحيط العالمية بدقة غير مسبوقة، مما سيغير فهمنا للمناخ العالمي.</p>
+        <div class="news-meta" style="margin-bottom: 20px;">
+          <span>١٥ يناير ٢٠٢٥</span>
+          <span>👁 4,200</span>
+        </div>
+        <a href="article.html?id=1" class="btn-primary" style="font-size: 14px; padding: 10px 22px;">اقرأ المقال كاملاً</a>
+      </div>
+    </div>
+    <div class="news-page-grid" id="news-grid"></div>
+    <p class="no-results" id="no-results" style="display:none">😕 لا توجد نتائج مطابقة</p>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-bottom"><p>© 2025 البيئة البحرية. جميع الحقوق محفوظة</p></div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    let currentFilter = 'all';
+    function filterNews(tag, btn) {
+      currentFilter = tag;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    }
+    function searchNews(q) { applyFilters(q); }
+    function applyFilters(q = document.getElementById('search-input')?.value || '') {
+      let filtered = ARTICLES;
+      if (currentFilter !== 'all') filtered = filtered.filter(a => a.tag === currentFilter);
+      if (q) filtered = filtered.filter(a => a.title.includes(q) || a.excerpt.includes(q));
+      renderNews(filtered);
+      document.getElementById('no-results').style.display = filtered.length ? 'none' : 'block';
+    }
+    document.addEventListener('DOMContentLoaded', () => { renderNews(); setLang(localStorage.getItem('marine-lang') || 'ar'); });
+  </script>
+</body>
+</html>

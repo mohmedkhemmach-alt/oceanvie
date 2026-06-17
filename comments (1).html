@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إدارة التعليقات - لوحة الإدارة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Cairo', sans-serif; background: #f0f4f8; direction: rtl; display: flex; height: 100vh; overflow: hidden; }
+    :root { --ocean: #0a2342; --ocean-light: #2e86c1; --teal: #0e9f9f; --coral: #e74c3c; --green: #27ae60; --border: #e0e8f0; --text: #0a2342; --muted: #6b8cae; --bg: #f0f4f8; }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    .sidebar { width: 240px; background: var(--ocean); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+    .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo h1 { font-size: 16px; font-weight: 700; }
+    .sidebar-logo p { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+    .nav-section { padding: 16px 12px 8px; font-size: 10px; font-weight: 700; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; margin: 2px 8px; font-size: 13px; cursor: pointer; transition: background 0.2s; color: rgba(255,255,255,0.75); }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+    .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .admin-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .topbar { background: white; border-bottom: 1px solid var(--border); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .topbar h2 { font-size: 17px; font-weight: 700; color: var(--text); }
+    .content { padding: 28px; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat { background: white; border-radius: 12px; padding: 16px 20px; border: 1px solid var(--border); text-align: center; }
+    .stat-num { font-size: 26px; font-weight: 700; }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .green { color: var(--green); }
+    .orange { color: #f39c12; }
+    .coral { color: var(--coral); }
+    .blue { color: var(--ocean-light); }
+
+    .toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-field { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 8px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; }
+    .search-field input { border: none; outline: none; font-family: 'Cairo', sans-serif; font-size: 13px; width: 100%; color: var(--text); }
+    .filter-select { padding: 9px 14px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 13px; background: white; outline: none; cursor: pointer; }
+
+    .tabs { display: flex; gap: 4px; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 20px; width: fit-content; }
+    .tab-btn { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: transparent; font-family: 'Cairo', sans-serif; color: var(--muted); transition: all 0.2s; }
+    .tab-btn.active { background: var(--ocean); color: white; }
+
+    .comment-cards { display: flex; flex-direction: column; gap: 12px; }
+    .comment-card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 16px 20px; }
+    .comment-card.pending-card { border-right: 4px solid #f39c12; }
+    .comment-card.approved-card { border-right: 4px solid var(--green); }
+    .comment-card.rejected-card { border-right: 4px solid var(--coral); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid var(--border); }
+    .user-meta h4 { font-size: 14px; font-weight: 600; color: var(--text); }
+    .user-meta p { font-size: 11px; color: var(--muted); }
+    .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .pending-pill { background: #fef9e7; color: #9a7d0a; }
+    .approved-pill { background: #e8f8f5; color: #1a7a5e; }
+    .rejected-pill { background: #fde8e8; color: #922b21; }
+    .article-ref { font-size: 11px; background: #eaf2ff; color: #1a5276; padding: 3px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; }
+    .comment-text { font-size: 13px; color: var(--text); line-height: 1.7; margin-bottom: 12px; }
+    .card-actions { display: flex; gap: 8px; }
+    .approve-btn { background: #e8f8f5; color: #1a7a5e; border: none; border-radius: 7px; padding: 7px 16px; font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .approve-btn:hover { background: #c9f0e4; }
+    .reject-btn { background: #fde8e8; color: #922b21; border: none; border-radius: 7px; padding: 7px 16px; font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .delete-btn { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 7px 16px; font-family: 'Cairo', sans-serif; font-size: 12px; cursor: pointer; }
+    .delete-btn:hover { border-color: var(--coral); color: var(--coral); }
+    .ai-check { background: linear-gradient(135deg, #eaf2ff, #e8f8f5); border: none; border-radius: 7px; padding: 7px 16px; font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--ocean); }
+    .ai-result { font-size: 11px; padding: 6px 10px; border-radius: 6px; margin-top: 8px; }
+    .ai-ok { background: #e8f8f5; color: #1a7a5e; }
+    .ai-bad { background: #fde8e8; color: #922b21; }
+
+    .empty { text-align: center; padding: 60px; color: var(--muted); }
+    .empty span { font-size: 48px; display: block; margin-bottom: 12px; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0a2342; color: white; padding: 12px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>🌊 البيئة البحرية</h1><p>لوحة الإدارة</p></div>
+    <div class="nav-section">القائمة الرئيسية</div>
+    <a href="dashboard.html" class="nav-item"><span>📊</span> لوحة التحكم</a>
+    <a href="articles.html" class="nav-item"><span>📰</span> المقالات</a>
+    <a href="comments.html" class="nav-item active"><span>💬</span> التعليقات</a>
+    <a href="breaking.html" class="nav-item"><span>🔴</span> أخبار عاجلة</a>
+    <div class="nav-section">الإدارة</div>
+    <a href="users.html" class="nav-item"><span>👥</span> المستخدمون</a>
+    <a href="permissions.html" class="nav-item"><span>🔐</span> الصلاحيات</a>
+    <a href="settings.html" class="nav-item"><span>⚙️</span> الإعدادات</a>
+    <div class="nav-section">الذكاء الاصطناعي</div>
+    <a href="ai.html" class="nav-item"><span>🤖</span> خدمات الذكاء</a>
+    <div class="sidebar-footer"><div style="display:flex;align-items:center;gap:10px"><div class="admin-avatar">👤</div><div><div style="font-size:13px;font-weight:600">المدير</div><div style="font-size:11px;opacity:.5">admin@marine-eco.ma</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2>💬 إدارة التعليقات</h2>
+      <div style="display:flex;gap:10px">
+        <button onclick="approveAll()" style="background:var(--green);color:white;border:none;border-radius:8px;padding:8px 16px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer">✅ قبول الكل</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num blue" id="stat-total">6</div><div class="stat-label">إجمالي التعليقات</div></div>
+        <div class="stat"><div class="stat-num orange" id="stat-pending">2</div><div class="stat-label">بانتظار المراجعة</div></div>
+        <div class="stat"><div class="stat-num green" id="stat-approved">4</div><div class="stat-label">معتمدة</div></div>
+        <div class="stat"><div class="stat-num coral" id="stat-rejected">0</div><div class="stat-label">مرفوضة</div></div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('all', this)">الكل</button>
+        <button class="tab-btn" onclick="switchTab('pending', this)">بانتظار المراجعة</button>
+        <button class="tab-btn" onclick="switchTab('approved', this)">معتمدة</button>
+        <button class="tab-btn" onclick="switchTab('rejected', this)">مرفوضة</button>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-field">
+          <span>🔍</span>
+          <input type="text" id="search-input" placeholder="ابحث في التعليقات..." oninput="renderComments()" />
+        </div>
+      </div>
+
+      <div class="comment-cards" id="comments-container"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let comments = [
+      { id:1, name:"أحمد المغربي", avatar:"👨", article:"اكتشاف 12 نوعاً جديداً من الأسماك", date:"١٥ يناير ٢٠٢٥", text:"مبادرة رائعة! نحن بحاجة ماسة لمثل هذه المنصات التي توعي بأهمية البيئة البحرية.", status:"approved", likes:24 },
+      { id:2, name:"فاطمة بنعلي", avatar:"👩", article:"تلوث البلاستيك في المتوسط", date:"١٢ يناير ٢٠٢٥", text:"التلوث البلاستيكي هو الخطر الأكبر الذي يواجه محيطاتنا. شكراً لهذا الموقع.", status:"pending", likes:18 },
+      { id:3, name:"يوسف الإدريسي", avatar:"🧑", article:"ارتفاع حرارة المحيطات", date:"١٠ يناير ٢٠٢٥", text:"هل يمكن مشاركة هذه المقالات على وسائل التواصل الاجتماعي؟ الموقع رائع.", status:"approved", likes:31 },
+      { id:4, name:"مريم الصالحي", avatar:"👩‍🔬", article:"الشعاب المرجانية", date:"٨ يناير ٢٠٢٥", text:"كباحثة في علم الأحياء البحرية، أثني على جودة المعلومات المقدمة.", status:"approved", likes:45 },
+      { id:5, name:"مجهول", avatar:"👤", article:"ارتفاع حرارة المحيطات", date:"٩ يناير ٢٠٢٥", text:"هذا المحتوى كذب ومبالغ فيه!", status:"pending", likes:0 },
+      { id:6, name:"كريم البوعزيزي", avatar:"👨‍💻", article:"نجاح برنامج إعادة توطين الحيتان", date:"٧ يناير ٢٠٢٥", text:"أخبار رائعة! استمروا في نشر الوعي البيئي.", status:"approved", likes:12 },
+    ];
+
+    let activeTab = 'all';
+
+    function switchTab(tab, btn) {
+      activeTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderComments();
+    }
+
+    function renderComments() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      let list = comments.filter(c =>
+        (activeTab === 'all' || c.status === activeTab) &&
+        (!q || c.text.toLowerCase().includes(q) || c.name.toLowerCase().includes(q))
+      );
+
+      updateStats();
+
+      const container = document.getElementById('comments-container');
+      if (!list.length) {
+        container.innerHTML = '<div class="empty"><span>💬</span><p>لا توجد تعليقات</p></div>';
+        return;
+      }
+      container.innerHTML = list.map(c => `
+        <div class="comment-card ${c.status}-card" id="card-${c.id}">
+          <div class="card-top">
+            <div class="user-info">
+              <div class="avatar">${c.avatar}</div>
+              <div class="user-meta">
+                <h4>${c.name}</h4>
+                <p>📅 ${c.date} · ❤️ ${c.likes}</p>
+              </div>
+            </div>
+            <span class="status-pill ${c.status}-pill">${{pending:'بانتظار المراجعة', approved:'معتمد', rejected:'مرفوض'}[c.status]}</span>
+          </div>
+          <div class="article-ref">📰 ${c.article}</div>
+          <p class="comment-text">"${c.text}"</p>
+          <div class="card-actions">
+            ${c.status !== 'approved' ? `<button class="approve-btn" onclick="changeStatus(${c.id},'approved')">✅ قبول</button>` : ''}
+            ${c.status !== 'rejected' ? `<button class="reject-btn" onclick="changeStatus(${c.id},'rejected')">❌ رفض</button>` : ''}
+            <button class="ai-check" onclick="aiModerate(${c.id})">🤖 فحص AI</button>
+            <button class="delete-btn" onclick="deleteComment(${c.id})">🗑️ حذف</button>
+          </div>
+          <div id="ai-res-${c.id}" style="display:none"></div>
+        </div>
+      `).join('');
+    }
+
+    function updateStats() {
+      document.getElementById('stat-total').textContent = comments.length;
+      document.getElementById('stat-pending').textContent = comments.filter(c => c.status === 'pending').length;
+      document.getElementById('stat-approved').textContent = comments.filter(c => c.status === 'approved').length;
+      document.getElementById('stat-rejected').textContent = comments.filter(c => c.status === 'rejected').length;
+    }
+
+    function changeStatus(id, status) {
+      const c = comments.find(x => x.id === id);
+      c.status = status;
+      renderComments();
+      showToast(status === 'approved' ? '✅ تم قبول التعليق' : '❌ تم رفض التعليق');
+    }
+
+    function deleteComment(id) {
+      comments = comments.filter(c => c.id !== id);
+      renderComments();
+      showToast('🗑️ تم حذف التعليق');
+    }
+
+    function approveAll() {
+      comments.filter(c => c.status === 'pending').forEach(c => c.status = 'approved');
+      renderComments();
+      showToast('✅ تم قبول جميع التعليقات المعلقة');
+    }
+
+    async function aiModerate(id) {
+      const c = comments.find(x => x.id === id);
+      const resDiv = document.getElementById(`ai-res-${id}`);
+      resDiv.style.display = 'block';
+      resDiv.className = 'ai-result';
+      resDiv.textContent = '⏳ جارٍ الفحص...';
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6', max_tokens: 200,
+            messages: [{ role: 'user', content: `راجع هذا التعليق وقرر إذا كان مناسباً للنشر على موقع بيئي عائلي:\n"${c.text}"\nأجب بـ JSON فقط: {"approved":true/false,"reason":"السبب"}` }]
+          })
+        });
+        const data = await res.json();
+        const result = JSON.parse(data.content[0].text.replace(/```json|```/g, '').trim());
+        resDiv.className = 'ai-result ' + (result.approved ? 'ai-ok' : 'ai-bad');
+        resDiv.textContent = result.approved ? `✅ الذكاء الاصطناعي: التعليق مناسب للنشر` : `❌ الذكاء الاصطناعي: ${result.reason}`;
+      } catch {
+        resDiv.textContent = '❌ تعذر الاتصال بالذكاء الاصطناعي';
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    renderComments();
+  </script>
+</body>
+</html>

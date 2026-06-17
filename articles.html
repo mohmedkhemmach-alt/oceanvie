@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إدارة المقالات - لوحة الإدارة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Cairo', sans-serif; background: #f0f4f8; direction: rtl; display: flex; height: 100vh; overflow: hidden; }
+    :root {
+      --ocean: #0a2342; --ocean-mid: #1a5276; --ocean-light: #2e86c1;
+      --teal: #0e9f9f; --coral: #e74c3c; --green: #27ae60;
+      --border: #e0e8f0; --text: #0a2342; --muted: #6b8cae; --bg: #f0f4f8;
+    }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+
+    .sidebar { width: 240px; background: var(--ocean); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+    .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo h1 { font-size: 16px; font-weight: 700; }
+    .sidebar-logo p { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+    .nav-section { padding: 16px 12px 8px; font-size: 10px; font-weight: 700; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; margin: 2px 8px; font-size: 13px; cursor: pointer; transition: background 0.2s; color: rgba(255,255,255,0.75); }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+    .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .admin-profile { display: flex; align-items: center; gap: 10px; }
+    .admin-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .admin-info h4 { font-size: 13px; font-weight: 600; }
+    .admin-info p { font-size: 11px; opacity: 0.5; }
+
+    .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .topbar { background: white; border-bottom: 1px solid var(--border); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .topbar h2 { font-size: 17px; font-weight: 700; color: var(--text); }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+    .content { padding: 28px; flex: 1; }
+
+    .toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+    .search-field { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 8px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; }
+    .search-field input { border: none; outline: none; font-family: 'Cairo', sans-serif; font-size: 13px; width: 100%; color: var(--text); }
+    .filter-select { padding: 9px 14px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 13px; background: white; outline: none; color: var(--text); cursor: pointer; }
+    .btn-primary { background: var(--teal); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-primary:hover { background: #0b8888; }
+    .btn-ai { background: linear-gradient(135deg, var(--ocean-light), var(--teal)); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    .panel { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .panel-header h3 { font-size: 14px; font-weight: 700; color: var(--text); }
+    .count-badge { background: var(--bg); color: var(--muted); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 11px 16px; text-align: right; font-size: 11px; font-weight: 700; color: var(--muted); background: #f8fafd; border-bottom: 1px solid var(--border); }
+    td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid #f5f7fa; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafcff; }
+    .article-title { font-weight: 600; color: var(--text); max-width: 260px; }
+    .article-title span { display: block; font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+    .emoji-cell { font-size: 24px; text-align: center; }
+    .tag-pill { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; background: #eaf2ff; color: #1a5276; }
+    .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .published { background: #e8f8f5; color: #1a7a5e; }
+    .pending { background: #fef9e7; color: #9a7d0a; }
+    .draft { background: #f0f4f8; color: #6b8cae; }
+    .archived { background: #fde8e8; color: #922b21; }
+    .views-cell { color: var(--muted); font-size: 12px; }
+    .actions { display: flex; gap: 4px; }
+    .action-btn { background: none; border: none; cursor: pointer; font-size: 15px; padding: 5px; border-radius: 6px; transition: background 0.2s; }
+    .action-btn:hover { background: var(--bg); }
+
+    .pagination { display: flex; gap: 6px; justify-content: center; padding: 20px; }
+    .page-btn { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 8px; background: white; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .page-btn.active { background: var(--ocean-light); color: white; border-color: var(--ocean-light); }
+    .page-btn:hover:not(.active) { background: var(--bg); }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 16px; padding: 32px; width: 680px; max-width: 100%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .modal-header h2 { font-size: 18px; font-weight: 700; color: var(--text); }
+    .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'Cairo', sans-serif; font-size: 13px; outline: none; color: var(--text); background: var(--bg);
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--ocean-light); background: white; }
+    .form-group textarea { min-height: 150px; resize: vertical; }
+    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
+    .cancel-btn { padding: 10px 20px; border: 1px solid var(--border); border-radius: 8px; background: white; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 13px; }
+    .save-btn { padding: 10px 24px; background: var(--teal); color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; }
+    .ai-gen-btn { padding: 10px 20px; background: linear-gradient(135deg, var(--ocean-light), var(--teal)); color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; }
+    .ai-loading { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); padding: 10px 0; }
+
+    /* CONFIRM DIALOG */
+    .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
+    .confirm-overlay.open { display: flex; }
+    .confirm-box { background: white; border-radius: 14px; padding: 28px; max-width: 380px; text-align: center; }
+    .confirm-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .confirm-box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+    .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+    .btn-danger { background: var(--coral); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0a2342; color: white; padding: 12px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>🌊 البيئة البحرية</h1>
+      <p>لوحة الإدارة</p>
+    </div>
+    <div class="nav-section">القائمة الرئيسية</div>
+    <a href="dashboard.html" class="nav-item"><span>📊</span> لوحة التحكم</a>
+    <a href="articles.html" class="nav-item active"><span>📰</span> المقالات</a>
+    <a href="comments.html" class="nav-item"><span>💬</span> التعليقات</a>
+    <a href="breaking.html" class="nav-item"><span>🔴</span> أخبار عاجلة</a>
+    <div class="nav-section">الإدارة</div>
+    <a href="users.html" class="nav-item"><span>👥</span> المستخدمون</a>
+    <a href="permissions.html" class="nav-item"><span>🔐</span> الصلاحيات</a>
+    <a href="settings.html" class="nav-item"><span>⚙️</span> الإعدادات</a>
+    <div class="nav-section">الذكاء الاصطناعي</div>
+    <a href="ai.html" class="nav-item"><span>🤖</span> خدمات الذكاء</a>
+    <div class="sidebar-footer">
+      <div class="admin-profile">
+        <div class="admin-avatar">👤</div>
+        <div class="admin-info">
+          <h4>المدير</h4>
+          <p>admin@marine-eco.ma</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2>📰 إدارة المقالات</h2>
+      <div class="topbar-actions">
+        <button class="btn-ai" onclick="openAIModal()">🤖 توليد بالذكاء الاصطناعي</button>
+        <button class="btn-primary" onclick="openModal()">+ مقال جديد</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="toolbar">
+        <div class="search-field">
+          <span>🔍</span>
+          <input type="text" id="search-input" placeholder="ابحث عن مقال..." oninput="applyFilters()" />
+        </div>
+        <select class="filter-select" id="filter-status" onchange="applyFilters()">
+          <option value="">كل الحالات</option>
+          <option value="published">منشور</option>
+          <option value="pending">قيد المراجعة</option>
+          <option value="draft">مسودة</option>
+          <option value="archived">مؤرشف</option>
+        </select>
+        <select class="filter-select" id="filter-tag" onchange="applyFilters()">
+          <option value="">كل التصنيفات</option>
+          <option value="تلوث">تلوث</option>
+          <option value="تنوع بيولوجي">تنوع بيولوجي</option>
+          <option value="تغير مناخي">تغير مناخي</option>
+          <option value="حماية">حماية</option>
+          <option value="أبحاث">أبحاث</option>
+        </select>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>قائمة المقالات</h3>
+          <span class="count-badge" id="count-badge">5 مقالات</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px"></th>
+              <th>العنوان</th>
+              <th>الكاتب</th>
+              <th>التصنيف</th>
+              <th>المشاهدات</th>
+              <th>التاريخ</th>
+              <th>الحالة</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="articles-tbody"></tbody>
+        </table>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE/EDIT MODAL -->
+  <div class="modal-overlay" id="article-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">✏️ مقال جديد</h2>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>عنوان المقال</label>
+          <input type="text" id="f-title" placeholder="أدخل عنوان جذاب ومعبر..." />
+        </div>
+        <div class="form-group">
+          <label>التصنيف</label>
+          <select id="f-tag">
+            <option value="تلوث">تلوث بحري</option>
+            <option value="تنوع بيولوجي">تنوع بيولوجي</option>
+            <option value="تغير مناخي">تغير مناخي</option>
+            <option value="حماية">حماية بيئية</option>
+            <option value="أبحاث">أبحاث علمية</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الحالة</label>
+          <select id="f-status">
+            <option value="published">منشور</option>
+            <option value="draft">مسودة</option>
+            <option value="pending">قيد المراجعة</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الإيموجي</label>
+          <input type="text" id="f-emoji" placeholder="🌊" maxlength="2" />
+        </div>
+        <div class="form-group">
+          <label>اللغة</label>
+          <select id="f-lang">
+            <option value="ar">العربية</option>
+            <option value="fr">الفرنسية</option>
+            <option value="en">الإنجليزية</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>المقتطف (Excerpt)</label>
+          <input type="text" id="f-excerpt" placeholder="وصف مختصر للمقال يظهر في قائمة الأخبار..." />
+        </div>
+        <div class="form-group full">
+          <label>محتوى المقال</label>
+          <textarea id="f-content" placeholder="اكتب محتوى المقال الكامل هنا..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>خبر عاجل؟</label>
+          <select id="f-breaking">
+            <option value="false">لا</option>
+            <option value="true">نعم - خبر عاجل</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-btns">
+        <button class="cancel-btn" onclick="closeModal()">إلغاء</button>
+        <button class="save-btn" onclick="saveArticle()">💾 حفظ المقال</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI GENERATE MODAL -->
+  <div class="modal-overlay" id="ai-modal">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-header">
+        <h2>🤖 توليد مقال بالذكاء الاصطناعي</h2>
+        <button class="close-btn" onclick="closeAIModal()">✕</button>
+      </div>
+      <div class="form-group">
+        <label>موضوع المقال</label>
+        <input type="text" id="ai-topic" placeholder="مثال: تأثير ارتفاع درجات الحرارة على الشعاب المرجانية..." />
+      </div>
+      <div class="form-group">
+        <label>اللغة</label>
+        <select id="ai-lang">
+          <option value="ar">العربية</option>
+          <option value="fr">الفرنسية</option>
+          <option value="en">الإنجليزية</option>
+        </select>
+      </div>
+      <div class="ai-loading" id="ai-loading">
+        <span>⏳</span> جارٍ توليد المقال بالذكاء الاصطناعي...
+      </div>
+      <div id="ai-result" style="display:none; margin-top:16px; padding:16px; background:var(--bg); border-radius:8px; font-size:13px; line-height:1.7; color:var(--text); max-height:200px; overflow-y:auto;"></div>
+      <div class="modal-btns">
+        <button class="cancel-btn" onclick="closeAIModal()">إلغاء</button>
+        <button class="ai-gen-btn" onclick="generateWithAI()">🤖 توليد المقال</button>
+        <button class="save-btn" id="ai-save-btn" style="display:none" onclick="saveAIArticle()">📰 إضافة للمقالات</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM DELETE -->
+  <div class="confirm-overlay" id="confirm-modal">
+    <div class="confirm-box">
+      <h3>🗑️ حذف المقال</h3>
+      <p>هل أنت متأكد من حذف هذا المقال؟ لا يمكن التراجع عن هذا الإجراء.</p>
+      <div class="confirm-btns">
+        <button class="cancel-btn" onclick="closeConfirm()">إلغاء</button>
+        <button class="btn-danger" onclick="confirmDelete()">حذف</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let articles = [
+      { id:1, emoji:"🐠", title:"اكتشاف 12 نوعاً جديداً من الأسماك في أعماق المحيط الهندي", excerpt:"فريق من العلماء الدوليين يعلن عن اكتشاف أنواع جديدة لم تُرصد من قبل.", author:"د. سارة بنعلي", tag:"تنوع بيولوجي", views:2140, date:"١٥ يناير ٢٠٢٥", status:"published", lang:"ar" },
+      { id:2, emoji:"🏭", title:"تقرير: تصاعد خطير في مستويات الميكروبلاستيك بشواطئ البحر المتوسط", excerpt:"دراسة جديدة تكشف أن كل كيلومتر من شواطئ المتوسط يحتوي على أكثر من 700 ألف جسيم.", author:"فريق التحرير", tag:"تلوث", views:3850, date:"١٢ يناير ٢٠٢٥", status:"published", lang:"ar" },
+      { id:3, emoji:"🌡️", title:"سجلات حرارة قياسية: المحيطات تمتص 90٪ من حرارة الكوكب الزائدة", excerpt:"تقرير مناخي جديد يوضح كيف تعمل المحيطات كمنظم حراري للأرض.", author:"أحمد الحسيني", tag:"تغير مناخي", views:1920, date:"١٠ يناير ٢٠٢٥", status:"pending", lang:"ar" },
+      { id:4, emoji:"🐋", title:"نجاح برنامج إعادة توطين الحيتان الزرقاء في المحيط الهادئ", excerpt:"بعد عقد من الجهود الدولية، تشير البيانات إلى انتعاش ملحوظ في أعداد الحيتان.", author:"منظمة حماية البحار", tag:"حماية", views:4200, date:"٨ يناير ٢٠٢٥", status:"published", lang:"ar" },
+      { id:5, emoji:"🌊", title:"العلماء يكشفون عن خريطة شاملة لتيارات المحيط العالمي", excerpt:"مشروع بحثي ضخم يقدم أول خريطة ثلاثية الأبعاد لتيارات المحيط بدقة غير مسبوقة.", author:"المعهد الدولي للبحار", tag:"أبحاث", views:1560, date:"٥ يناير ٢٠٢٥", status:"draft", lang:"ar" },
+      { id:6, emoji:"🪸", title:"مبادرة مغربية لإعادة زراعة الشعاب المرجانية في سواحل الأطلنطي", excerpt:"المغرب يطلق مبادرة بيئية طموحة لإعادة توطين الشعاب المرجانية.", author:"وزارة البيئة المغربية", tag:"حماية", views:2880, date:"٣ يناير ٢٠٢٥", status:"published", lang:"ar" },
+    ];
+
+    let filtered = [...articles];
+    let currentPage = 1;
+    const PAGE_SIZE = 5;
+    let editingId = null;
+    let deletingId = null;
+    let aiGenerated = null;
+
+    const STATUS_LABELS = { published:"منشور", pending:"قيد المراجعة", draft:"مسودة", archived:"مؤرشف" };
+
+    function applyFilters() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const st = document.getElementById('filter-status').value;
+      const tag = document.getElementById('filter-tag').value;
+      filtered = articles.filter(a =>
+        (!q || a.title.toLowerCase().includes(q) || a.author.toLowerCase().includes(q)) &&
+        (!st || a.status === st) &&
+        (!tag || a.tag === tag)
+      );
+      currentPage = 1;
+      render();
+    }
+
+    function render() {
+      const tbody = document.getElementById('articles-tbody');
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const page = filtered.slice(start, start + PAGE_SIZE);
+
+      document.getElementById('count-badge').textContent = `${filtered.length} مقالات`;
+
+      tbody.innerHTML = page.map(a => `
+        <tr>
+          <td class="emoji-cell">${a.emoji}</td>
+          <td>
+            <div class="article-title">${a.title}<span>✍️ ${a.author}</span></div>
+          </td>
+          <td style="color:var(--muted);font-size:12px">${a.author}</td>
+          <td><span class="tag-pill">${a.tag}</span></td>
+          <td class="views-cell">👁 ${a.views.toLocaleString('ar')}</td>
+          <td style="color:var(--muted);font-size:12px">${a.date}</td>
+          <td><span class="status-pill ${a.status}">${STATUS_LABELS[a.status]}</span></td>
+          <td>
+            <div class="actions">
+              <button class="action-btn" title="تعديل" onclick="editArticle(${a.id})">✏️</button>
+              <button class="action-btn" title="نشر/إيقاف" onclick="togglePublish(${a.id})">${a.status === 'published' ? '🔴' : '✅'}</button>
+              <button class="action-btn" title="حذف" onclick="askDelete(${a.id})">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      renderPagination();
+    }
+
+    function renderPagination() {
+      const total = Math.ceil(filtered.length / PAGE_SIZE);
+      const pg = document.getElementById('pagination');
+      if (total <= 1) { pg.innerHTML = ''; return; }
+      pg.innerHTML = Array.from({length: total}, (_, i) => `
+        <button class="page-btn ${currentPage === i+1 ? 'active' : ''}" onclick="goPage(${i+1})">${i+1}</button>
+      `).join('');
+    }
+
+    function goPage(p) { currentPage = p; render(); }
+
+    function openModal(id = null) {
+      editingId = id;
+      const a = id ? articles.find(x => x.id === id) : null;
+      document.getElementById('modal-title').textContent = id ? '✏️ تعديل المقال' : '✏️ مقال جديد';
+      document.getElementById('f-title').value = a?.title || '';
+      document.getElementById('f-tag').value = a?.tag || 'تلوث';
+      document.getElementById('f-status').value = a?.status || 'draft';
+      document.getElementById('f-emoji').value = a?.emoji || '🌊';
+      document.getElementById('f-lang').value = a?.lang || 'ar';
+      document.getElementById('f-excerpt').value = a?.excerpt || '';
+      document.getElementById('f-content').value = a?.content || '';
+      document.getElementById('f-breaking').value = a?.breaking ? 'true' : 'false';
+      document.getElementById('article-modal').classList.add('open');
+    }
+
+    function closeModal() { document.getElementById('article-modal').classList.remove('open'); }
+
+    function editArticle(id) { openModal(id); }
+
+    function saveArticle() {
+      const title = document.getElementById('f-title').value.trim();
+      if (!title) { alert('يرجى إدخال عنوان المقال'); return; }
+      if (editingId) {
+        const idx = articles.findIndex(a => a.id === editingId);
+        articles[idx] = { ...articles[idx],
+          title, tag: document.getElementById('f-tag').value,
+          status: document.getElementById('f-status').value,
+          emoji: document.getElementById('f-emoji').value || '📰',
+          lang: document.getElementById('f-lang').value,
+          excerpt: document.getElementById('f-excerpt').value,
+          content: document.getElementById('f-content').value,
+          breaking: document.getElementById('f-breaking').value === 'true'
+        };
+        showToast('✅ تم تعديل المقال بنجاح');
+      } else {
+        articles.unshift({
+          id: Date.now(), title, tag: document.getElementById('f-tag').value,
+          status: document.getElementById('f-status').value,
+          emoji: document.getElementById('f-emoji').value || '📰',
+          lang: document.getElementById('f-lang').value,
+          excerpt: document.getElementById('f-excerpt').value,
+          content: document.getElementById('f-content').value,
+          author: 'المدير', views: 0, date: 'الآن',
+          breaking: document.getElementById('f-breaking').value === 'true'
+        });
+        showToast('✅ تم نشر المقال بنجاح');
+      }
+      applyFilters();
+      closeModal();
+    }
+
+    function togglePublish(id) {
+      const a = articles.find(x => x.id === id);
+      a.status = a.status === 'published' ? 'archived' : 'published';
+      applyFilters();
+      showToast(a.status === 'published' ? '✅ تم نشر المقال' : '🔴 تم إيقاف نشر المقال');
+    }
+
+    function askDelete(id) {
+      deletingId = id;
+      document.getElementById('confirm-modal').classList.add('open');
+    }
+
+    function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); }
+
+    function confirmDelete() {
+      articles = articles.filter(a => a.id !== deletingId);
+      applyFilters();
+      closeConfirm();
+      showToast('🗑️ تم حذف المقال');
+    }
+
+    function openAIModal() {
+      aiGenerated = null;
+      document.getElementById('ai-topic').value = '';
+      document.getElementById('ai-result').style.display = 'none';
+      document.getElementById('ai-save-btn').style.display = 'none';
+      document.getElementById('ai-loading').style.display = 'none';
+      document.getElementById('ai-modal').classList.add('open');
+    }
+
+    function closeAIModal() { document.getElementById('ai-modal').classList.remove('open'); }
+
+    async function generateWithAI() {
+      const topic = document.getElementById('ai-topic').value.trim();
+      const lang = document.getElementById('ai-lang').value;
+      if (!topic) { alert('يرجى إدخال موضوع المقال'); return; }
+
+      document.getElementById('ai-loading').style.display = 'flex';
+      document.getElementById('ai-result').style.display = 'none';
+      document.getElementById('ai-save-btn').style.display = 'none';
+
+      const langInstruct = { ar: 'باللغة العربية', fr: 'en français', en: 'in English' };
+      const prompt = `اكتب مقالاً صحفياً احترافياً ${langInstruct[lang]} عن: ${topic}
+الموضوع: البيئة البحرية والمحيطات
+أجب بتنسيق JSON فقط بدون أي نص إضافي:
+{"title":"...","excerpt":"وصف مختصر...","content":"محتوى كامل 300-500 كلمة...","tag":"تلوث أو تنوع بيولوجي أو تغير مناخي أو حماية أو أبحاث","emoji":"إيموجي مناسب"}`;
+
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6', max_tokens: 1500,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text || '';
+        try {
+          aiGenerated = JSON.parse(text.replace(/```json|```/g, '').trim());
+          aiGenerated.lang = lang;
+          document.getElementById('ai-result').innerHTML = `
+            <strong>${aiGenerated.emoji} ${aiGenerated.title}</strong><br/><br/>
+            <em>${aiGenerated.excerpt}</em><br/><br/>
+            ${aiGenerated.content.slice(0, 400)}...
+          `;
+          document.getElementById('ai-result').style.display = 'block';
+          document.getElementById('ai-save-btn').style.display = 'inline-block';
+        } catch {
+          document.getElementById('ai-result').textContent = text.slice(0, 500);
+          document.getElementById('ai-result').style.display = 'block';
+        }
+      } catch (e) {
+        document.getElementById('ai-result').textContent = '❌ تعذر الاتصال بالذكاء الاصطناعي';
+        document.getElementById('ai-result').style.display = 'block';
+      }
+      document.getElementById('ai-loading').style.display = 'none';
+    }
+
+    function saveAIArticle() {
+      if (!aiGenerated) return;
+      articles.unshift({ id: Date.now(), ...aiGenerated, author: 'الذكاء الاصطناعي', views: 0, date: 'الآن', status: 'draft' });
+      applyFilters();
+      closeAIModal();
+      showToast('🤖 تم إضافة المقال من الذكاء الاصطناعي كمسودة');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    applyFilters();
+  </script>
+</body>
+</html>

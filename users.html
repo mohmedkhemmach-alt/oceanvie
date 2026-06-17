@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إدارة المستخدمين - لوحة الإدارة</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Cairo', sans-serif; background: #f0f4f8; direction: rtl; display: flex; height: 100vh; overflow: hidden; }
+    :root { --ocean: #0a2342; --ocean-light: #2e86c1; --teal: #0e9f9f; --coral: #e74c3c; --green: #27ae60; --border: #e0e8f0; --text: #0a2342; --muted: #6b8cae; --bg: #f0f4f8; }
+    a { text-decoration: none; color: inherit; }
+    .sidebar { width: 240px; background: var(--ocean); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+    .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo h1 { font-size: 16px; font-weight: 700; }
+    .sidebar-logo p { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+    .nav-section { padding: 16px 12px 8px; font-size: 10px; font-weight: 700; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; margin: 2px 8px; font-size: 13px; cursor: pointer; transition: background 0.2s; color: rgba(255,255,255,0.75); }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+    .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .topbar { background: white; border-bottom: 1px solid var(--border); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .topbar h2 { font-size: 17px; font-weight: 700; color: var(--text); }
+    .content { padding: 28px; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat { background: white; border-radius: 12px; padding: 16px 20px; border: 1px solid var(--border); text-align: center; }
+    .stat-num { font-size: 26px; font-weight: 700; }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+    .search-field { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 8px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; }
+    .search-field input { border: none; outline: none; font-family: 'Cairo', sans-serif; font-size: 13px; width: 100%; }
+    .filter-select { padding: 9px 14px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 13px; background: white; outline: none; cursor: pointer; }
+    .btn-primary { background: var(--teal); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    .panel { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .panel-header h3 { font-size: 14px; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 11px 16px; text-align: right; font-size: 11px; font-weight: 700; color: var(--muted); background: #f8fafd; border-bottom: 1px solid var(--border); }
+    td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid #f5f7fa; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafcff; }
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid var(--border); flex-shrink: 0; }
+    .user-name { font-weight: 600; }
+    .user-email { font-size: 11px; color: var(--muted); }
+    .role-pill { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .role-admin { background: #fde8e8; color: #922b21; }
+    .role-editor { background: #fef9e7; color: #9a7d0a; }
+    .role-user { background: #e8f8f5; color: #1a7a5e; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-left: 5px; }
+    .active-dot { background: var(--green); }
+    .inactive-dot { background: var(--muted); }
+    .actions { display: flex; gap: 4px; }
+    .action-btn { background: none; border: none; cursor: pointer; font-size: 15px; padding: 5px; border-radius: 6px; transition: background 0.2s; }
+    .action-btn:hover { background: var(--bg); }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 16px; padding: 32px; width: 500px; max-width: 95vw; }
+    .modal h2 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 13px; outline: none; background: var(--bg); transition: border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--ocean-light); background: white; }
+    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .cancel-btn { padding: 10px 20px; border: 1px solid var(--border); border-radius: 8px; background: white; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 13px; }
+    .save-btn { padding: 10px 24px; background: var(--teal); color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0a2342; color: white; padding: 12px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>🌊 البيئة البحرية</h1><p>لوحة الإدارة</p></div>
+    <div class="nav-section">القائمة الرئيسية</div>
+    <a href="dashboard.html" class="nav-item"><span>📊</span> لوحة التحكم</a>
+    <a href="articles.html" class="nav-item"><span>📰</span> المقالات</a>
+    <a href="comments.html" class="nav-item"><span>💬</span> التعليقات</a>
+    <a href="breaking.html" class="nav-item"><span>🔴</span> أخبار عاجلة</a>
+    <div class="nav-section">الإدارة</div>
+    <a href="users.html" class="nav-item active"><span>👥</span> المستخدمون</a>
+    <a href="permissions.html" class="nav-item"><span>🔐</span> الصلاحيات</a>
+    <a href="settings.html" class="nav-item"><span>⚙️</span> الإعدادات</a>
+    <div class="nav-section">الذكاء الاصطناعي</div>
+    <a href="ai.html" class="nav-item"><span>🤖</span> خدمات الذكاء</a>
+    <div class="sidebar-footer"><div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:16px">👤</div><div><div style="font-size:13px;font-weight:600">المدير</div><div style="font-size:11px;opacity:.5">admin@marine-eco.ma</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2>👥 إدارة المستخدمين</h2>
+      <button class="btn-primary" onclick="openModal()">+ مستخدم جديد</button>
+    </div>
+    <div class="content">
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num" style="color:var(--ocean-light)" id="s-total">5</div><div class="stat-label">إجمالي المستخدمين</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--coral)" id="s-admin">1</div><div class="stat-label">مسؤولون</div></div>
+        <div class="stat"><div class="stat-num" style="color:#f39c12" id="s-editor">1</div><div class="stat-label">محررون</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--green)" id="s-user">3</div><div class="stat-label">مستخدمون عاديون</div></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-field">
+          <span>🔍</span>
+          <input type="text" id="search-input" placeholder="ابحث بالاسم أو البريد..." oninput="render()" />
+        </div>
+        <select class="filter-select" id="filter-role" onchange="render()">
+          <option value="">كل الأدوار</option>
+          <option value="admin">مسؤول</option>
+          <option value="editor">محرر</option>
+          <option value="user">مستخدم</option>
+        </select>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>قائمة المستخدمين</h3>
+          <span style="font-size:12px;color:var(--muted)" id="count-badge">5 مستخدمين</span>
+        </div>
+        <table>
+          <thead>
+            <tr><th>المستخدم</th><th>البريد الإلكتروني</th><th>الدور</th><th>تاريخ الانضمام</th><th>الحالة</th><th>الإجراءات</th></tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="user-modal">
+    <div class="modal">
+      <h2 id="modal-title">👤 مستخدم جديد</h2>
+      <div class="form-group"><label>الاسم الكامل</label><input type="text" id="f-name" placeholder="أدخل الاسم الكامل" /></div>
+      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="f-email" placeholder="example@email.ma" /></div>
+      <div class="form-group"><label>كلمة المرور</label><input type="password" id="f-pass" placeholder="8 أحرف على الأقل" /></div>
+      <div class="form-group"><label>الدور</label>
+        <select id="f-role">
+          <option value="user">مستخدم</option>
+          <option value="editor">محرر</option>
+          <option value="admin">مسؤول</option>
+        </select>
+      </div>
+      <div class="modal-btns">
+        <button class="cancel-btn" onclick="closeModal()">إلغاء</button>
+        <button class="save-btn" onclick="saveUser()">💾 حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let users = [
+      { id:1, name:"Admin", email:"admin@marine-eco.ma", role:"admin", active:true, joined:"١ يناير ٢٠٢٥", avatar:"👑" },
+      { id:2, name:"سارة بنعلي", email:"s.benali@email.ma", role:"editor", active:true, joined:"٥ يناير ٢٠٢٥", avatar:"👩‍💼" },
+      { id:3, name:"محمد العلمي", email:"m.alami@email.ma", role:"user", active:true, joined:"١٠ يناير ٢٠٢٥", avatar:"👨" },
+      { id:4, name:"فاطمة الزهراء", email:"f.zahra@email.ma", role:"user", active:false, joined:"١٢ يناير ٢٠٢٥", avatar:"👩" },
+      { id:5, name:"يوسف الإدريسي", email:"y.idrissi@email.ma", role:"user", active:true, joined:"١٥ يناير ٢٠٢٥", avatar:"🧑" },
+    ];
+
+    let editingId = null;
+
+    const ROLE_LABELS = { admin:"مسؤول", editor:"محرر", user:"مستخدم" };
+    const ROLE_CLASSES = { admin:"role-admin", editor:"role-editor", user:"role-user" };
+
+    function render() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const r = document.getElementById('filter-role').value;
+      const list = users.filter(u => (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) && (!r || u.role === r));
+
+      document.getElementById('count-badge').textContent = `${list.length} مستخدمين`;
+      document.getElementById('s-total').textContent = users.length;
+      document.getElementById('s-admin').textContent = users.filter(u=>u.role==='admin').length;
+      document.getElementById('s-editor').textContent = users.filter(u=>u.role==='editor').length;
+      document.getElementById('s-user').textContent = users.filter(u=>u.role==='user').length;
+
+      document.getElementById('users-tbody').innerHTML = list.map(u => `
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="avatar">${u.avatar}</div>
+              <div><div class="user-name">${u.name}</div></div>
+            </div>
+          </td>
+          <td class="user-email">${u.email}</td>
+          <td><span class="role-pill ${ROLE_CLASSES[u.role]}">${ROLE_LABELS[u.role]}</span></td>
+          <td style="color:var(--muted);font-size:12px">${u.joined}</td>
+          <td>
+            <span class="status-dot ${u.active ? 'active-dot' : 'inactive-dot'}"></span>
+            <span style="font-size:12px;color:var(--muted)">${u.active ? 'نشط' : 'موقوف'}</span>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="action-btn" onclick="editUser(${u.id})" title="تعديل">✏️</button>
+              <button class="action-btn" onclick="toggleActive(${u.id})" title="${u.active ? 'إيقاف' : 'تفعيل'}">${u.active ? '🔴' : '✅'}</button>
+              <button class="action-btn" onclick="changeRole(${u.id})" title="تغيير الدور">🔐</button>
+              ${u.role !== 'admin' ? `<button class="action-btn" onclick="deleteUser(${u.id})" title="حذف">🗑️</button>` : ''}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openModal(id = null) {
+      editingId = id;
+      const u = id ? users.find(x => x.id === id) : null;
+      document.getElementById('modal-title').textContent = id ? '✏️ تعديل المستخدم' : '👤 مستخدم جديد';
+      document.getElementById('f-name').value = u?.name || '';
+      document.getElementById('f-email').value = u?.email || '';
+      document.getElementById('f-pass').value = '';
+      document.getElementById('f-role').value = u?.role || 'user';
+      document.getElementById('user-modal').classList.add('open');
+    }
+
+    function closeModal() { document.getElementById('user-modal').classList.remove('open'); }
+
+    function editUser(id) { openModal(id); }
+
+    function saveUser() {
+      const name = document.getElementById('f-name').value.trim();
+      const email = document.getElementById('f-email').value.trim();
+      if (!name || !email) { alert('يرجى ملء الحقول المطلوبة'); return; }
+      if (editingId) {
+        const u = users.find(x => x.id === editingId);
+        u.name = name; u.email = email; u.role = document.getElementById('f-role').value;
+        showToast('✅ تم تعديل المستخدم');
+      } else {
+        users.push({ id: Date.now(), name, email, role: document.getElementById('f-role').value, active: true, joined: 'الآن', avatar: '👤' });
+        showToast('✅ تم إضافة المستخدم');
+      }
+      render();
+      closeModal();
+    }
+
+    function toggleActive(id) {
+      const u = users.find(x => x.id === id);
+      u.active = !u.active;
+      render();
+      showToast(u.active ? '✅ تم تفعيل الحساب' : '🔴 تم إيقاف الحساب');
+    }
+
+    function changeRole(id) {
+      const u = users.find(x => x.id === id);
+      const roles = ['user', 'editor', 'admin'];
+      const next = roles[(roles.indexOf(u.role) + 1) % roles.length];
+      u.role = next;
+      render();
+      showToast(`🔐 تم تغيير الدور إلى: ${ROLE_LABELS[next]}`);
+    }
+
+    function deleteUser(id) {
+      if (!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
+      users = users.filter(u => u.id !== id);
+      render();
+      showToast('🗑️ تم حذف المستخدم');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    render();
+  </script>
+</body>
+</html>

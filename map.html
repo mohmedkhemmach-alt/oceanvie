@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الخريطة التفاعلية - البيئة البحرية</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+    .map-page { flex: 1; display: flex; overflow: hidden; }
+    #map { flex: 1; z-index: 1; }
+    .map-sidebar {
+      width: 320px; background: white; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden; z-index: 2;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+    }
+    .sidebar-header { padding: 20px; background: var(--ocean-deep); color: white; }
+    .sidebar-header h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .sidebar-header p { font-size: 12px; opacity: 0.7; }
+    .layer-controls { padding: 16px; border-bottom: 1px solid var(--border); }
+    .layer-controls h3 { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .layer-btn {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: 8px; background: white; cursor: pointer;
+      font-family: var(--font); font-size: 13px; margin-bottom: 8px; transition: all 0.2s;
+      color: var(--text-dark);
+    }
+    .layer-btn.active { background: var(--ocean-foam); border-color: var(--ocean-light); color: var(--ocean-deep); }
+    .layer-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .incidents-list { flex: 1; overflow-y: auto; padding: 16px; }
+    .incidents-list h3 { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .incident-card {
+      padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;
+    }
+    .incident-card:hover { border-color: var(--ocean-light); box-shadow: var(--shadow); }
+    .incident-card h4 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; }
+    .incident-card p { font-size: 11px; color: var(--text-muted); }
+    .incident-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-bottom: 6px; }
+    .tag-pollution { background: #fde8e8; color: #c0392b; }
+    .tag-protection { background: #e8f8f5; color: #1a7a5e; }
+    .tag-research { background: #eaf2ff; color: #1a5276; }
+    .legend {
+      padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px;
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; color: var(--text-muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo"><span class="logo-icon">🌊</span><span>البيئة البحرية</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html">الرئيسية</a></li>
+        <li><a href="news.html">الأخبار</a></li>
+        <li><a href="map.html" class="active">الخريطة</a></li>
+        <li><a href="chatbot.html">الذكاء الاصطناعي</a></li>
+        <li><a href="comments.html">التعليقات</a></li>
+      </ul>
+      <div class="nav-actions"><a href="login.html" class="btn-login">تسجيل الدخول</a></div>
+    </div>
+  </nav>
+
+  <div class="map-page">
+    <aside class="map-sidebar">
+      <div class="sidebar-header">
+        <h2>🗺️ خريطة البيئة البحرية</h2>
+        <p>مناطق التلوث وجهود الحماية حول العالم</p>
+      </div>
+
+      <div class="layer-controls">
+        <h3>طبقات الخريطة</h3>
+        <button class="layer-btn active" onclick="toggleLayer('pollution', this)">
+          <span class="layer-dot" style="background:#e74c3c"></span> مناطق التلوث
+        </button>
+        <button class="layer-btn active" onclick="toggleLayer('protection', this)">
+          <span class="layer-dot" style="background:#27ae60"></span> مناطق محمية
+        </button>
+        <button class="layer-btn active" onclick="toggleLayer('research', this)">
+          <span class="layer-dot" style="background:#2980b9"></span> محطات البحث
+        </button>
+      </div>
+
+      <div class="incidents-list">
+        <h3>آخر الأحداث</h3>
+        <div id="incidents-list"></div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#e74c3c"></span>تلوث</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#27ae60"></span>محمية</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#2980b9"></span>بحث</div>
+      </div>
+    </aside>
+
+    <div id="map"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const MAP_DATA = [
+      { id:1, lat:35.89, lng:-5.32, type:"pollution", title:"تلوث نفطي - مضيق جبل طارق", desc:"تسرب نفطي متوسط الحجم يؤثر على الشواطئ المغربية", severity:"high", date:"٢ يناير ٢٠٢٥" },
+      { id:2, lat:30.8, lng:-9.5, type:"protection", title:"المحمية البحرية - أغادير", desc:"منطقة محمية تضم تنوعاً بيولوجياً استثنائياً", severity:"good", date:"دائم" },
+      { id:3, lat:43.3, lng:5.4, type:"pollution", title:"تلوث بلاستيكي - مارسيليا", desc:"تركز عالٍ من الميكروبلاستيك قرب الميناء", severity:"medium", date:"٥ يناير ٢٠٢٥" },
+      { id:4, lat:37.5, lng:15.1, type:"research", title:"محطة بحث - صقلية", desc:"مركز رصد للتغيرات المناخية في البحر المتوسط", severity:"info", date:"مستمر" },
+      { id:5, lat:25.0, lng:37.0, type:"protection", title:"شعاب مرجانية - البحر الأحمر", desc:"منطقة شعاب مرجانية محمية دولياً", severity:"good", date:"دائم" },
+      { id:6, lat:-8.8, lng:-13.5, type:"pollution", title:"تلوث صناعي - خليج غينيا", desc:"تصريف مياه صناعية يؤثر على الحياة البحرية", severity:"high", date:"١٠ يناير ٢٠٢٥" },
+      { id:7, lat:14.5, lng:-17.5, type:"research", title:"محطة رصد - داكار", desc:"رصد مستويات تلوث المياه وتغيرات المناخ", severity:"info", date:"مستمر" },
+      { id:8, lat:33.6, lng:-7.6, type:"protection", title:"محمية الدار البيضاء البحرية", desc:"منطقة حماية للأسماك والكائنات البحرية", severity:"good", date:"دائم" },
+    ];
+
+    const colors = { pollution: "#e74c3c", protection: "#27ae60", research: "#2980b9" };
+    const tagClasses = { pollution: "tag-pollution", protection: "tag-protection", research: "tag-research" };
+    const tagLabels = { pollution: "تلوث", protection: "محمية", research: "أبحاث" };
+
+    const map = L.map("map", { center: [20, 10], zoom: 3 });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '© OpenStreetMap', maxZoom: 18
+    }).addTo(map);
+
+    const layers = { pollution: [], protection: [], research: [] };
+    const activeLayrs = { pollution: true, protection: true, research: true };
+
+    MAP_DATA.forEach(point => {
+      const marker = L.circleMarker([point.lat, point.lng], {
+        radius: 10, fillColor: colors[point.type], color: "white",
+        weight: 2, fillOpacity: 0.85
+      }).addTo(map).bindPopup(`
+        <div style="font-family: Cairo, sans-serif; min-width: 200px; direction: rtl;">
+          <span style="background:${colors[point.type]}22; color:${colors[point.type]}; padding: 2px 8px; border-radius: 4px; font-size:11px; font-weight:700;">${tagLabels[point.type]}</span>
+          <h4 style="margin: 8px 0 6px; font-size:14px; font-weight:700;">${point.title}</h4>
+          <p style="font-size:12px; color:#666; margin-bottom:6px;">${point.desc}</p>
+          <p style="font-size:11px; color:#999;">📅 ${point.date}</p>
+        </div>
+      `);
+      layers[point.type].push(marker);
+    });
+
+    function toggleLayer(type, btn) {
+      activeLayrs[type] = !activeLayrs[type];
+      btn.classList.toggle("active", activeLayrs[type]);
+      layers[type].forEach(m => activeLayrs[type] ? m.addTo(map) : m.remove());
+    }
+
+    const list = document.getElementById("incidents-list");
+    MAP_DATA.forEach(p => {
+      const div = document.createElement("div");
+      div.className = "incident-card";
+      div.innerHTML = `
+        <span class="incident-tag ${tagClasses[p.type]}">${tagLabels[p.type]}</span>
+        <h4>${p.title}</h4>
+        <p>📅 ${p.date}</p>
+      `;
+      div.onclick = () => { map.setView([p.lat, p.lng], 6); };
+      list.appendChild(div);
+    });
+  </script>
+</body>
+</html>

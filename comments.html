@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>التعليقات - البيئة البحرية</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" />
+  <style>
+    .comments-page { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+    .page-title { font-size: 26px; font-weight: 700; color: var(--ocean-deep); margin-bottom: 8px; }
+    .page-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
+    .comment-form { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 32px; }
+    .comment-form h3 { font-size: 15px; font-weight: 700; color: var(--ocean-deep); margin-bottom: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-field input, .form-field textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+      font-family: var(--font); font-size: 14px; outline: none; color: var(--text-dark);
+      background: var(--ocean-foam); transition: border-color 0.2s;
+    }
+    .form-field input:focus, .form-field textarea:focus { border-color: var(--ocean-light); background: white; }
+    .form-field textarea { resize: vertical; min-height: 100px; }
+    .comment-submit { background: var(--teal); color: white; border: none; padding: 10px 24px; border-radius: 8px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .comment-submit:hover { background: #0b8888; }
+    .comments-list h3 { font-size: 16px; font-weight: 700; color: var(--ocean-deep); margin-bottom: 20px; }
+    .comment-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; }
+    .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--ocean-foam); border: 2px solid var(--ocean-pale); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .comment-meta h4 { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+    .comment-meta p { font-size: 12px; color: var(--text-muted); }
+    .comment-text { font-size: 14px; color: var(--text-dark); line-height: 1.7; margin-bottom: 12px; }
+    .comment-actions { display: flex; gap: 12px; }
+    .action-btn { background: none; border: none; font-family: var(--font); font-size: 12px; color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; }
+    .action-btn:hover { background: var(--ocean-foam); color: var(--ocean-light); }
+    .like-btn.liked { color: var(--coral); }
+    .article-ref { display: inline-block; background: var(--teal-light); color: var(--teal); font-size: 11px; padding: 3px 10px; border-radius: 4px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo"><span class="logo-icon">🌊</span><span>البيئة البحرية</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html">الرئيسية</a></li>
+        <li><a href="news.html">الأخبار</a></li>
+        <li><a href="map.html">الخريطة</a></li>
+        <li><a href="chatbot.html">الذكاء الاصطناعي</a></li>
+        <li><a href="comments.html" class="active">التعليقات</a></li>
+      </ul>
+      <div class="nav-actions"><a href="login.html" class="btn-login">تسجيل الدخول</a></div>
+    </div>
+  </nav>
+
+  <div class="comments-page">
+    <h1 class="page-title">💬 التعليقات والنقاشات</h1>
+    <p class="page-subtitle">شارك برأيك وتعليقاتك حول أخبار البيئة البحرية</p>
+
+    <div class="comment-form">
+      <h3>✍️ أضف تعليقك</h3>
+      <div class="form-row">
+        <div class="form-field"><input type="text" id="c-name" placeholder="اسمك" /></div>
+        <div class="form-field"><input type="email" id="c-email" placeholder="بريدك الإلكتروني (اختياري)" /></div>
+      </div>
+      <div class="form-field" style="margin-bottom: 12px;">
+        <textarea id="c-text" placeholder="اكتب تعليقك هنا..."></textarea>
+      </div>
+      <button class="comment-submit" onclick="addComment()">إرسال التعليق ➤</button>
+    </div>
+
+    <div class="comments-list">
+      <h3 id="count-title">التعليقات (4)</h3>
+      <div id="comments-container"></div>
+    </div>
+  </div>
+
+  <footer class="footer" style="margin-top: 40px;">
+    <div class="footer-bottom"><p>© 2025 البيئة البحرية. جميع الحقوق محفوظة</p></div>
+  </footer>
+
+  <script>
+    let comments = [
+      { id:1, name:"أحمد المغربي", avatar:"👨", date:"١٥ يناير ٢٠٢٥", text:"مبادرة رائعة! نحن بحاجة ماسة لمثل هذه المنصات التي توعي بأهمية البيئة البحرية. المحيطات هي رئة الأرض ويجب أن نحميها.", article:"اكتشاف 12 نوعاً جديداً من الأسماك", likes:24, liked:false },
+      { id:2, name:"فاطمة بنعلي", avatar:"👩", date:"١٢ يناير ٢٠٢٥", text:"التلوث البلاستيكي هو الخطر الأكبر الذي يواجه محيطاتنا. شكراً لهذا الموقع على تسليط الضوء على هذه القضية المهمة.", article:"تلوث البلاستيك في المتوسط", likes:18, liked:false },
+      { id:3, name:"يوسف الإدريسي", avatar:"🧑", date:"١٠ يناير ٢٠٢٥", text:"هل يمكن مشاركة هذه المقالات على وسائل التواصل الاجتماعي؟ نريد نشر الوعي أكثر. الموقع رائع والمحتوى علمي وموثوق.", article:"ارتفاع حرارة المحيطات", likes:31, liked:false },
+      { id:4, name:"مريم الصالحي", avatar:"👩‍🔬", date:"٨ يناير ٢٠٢٥", text:"كباحثة في علم الأحياء البحرية، أثني على جودة المعلومات المقدمة. من النادر أن تجد محتوى علمياً دقيقاً باللغة العربية عن البيئة البحرية.", article:"الشعاب المرجانية", likes:45, liked:false }
+    ];
+
+    function renderComments() {
+      const container = document.getElementById("comments-container");
+      document.getElementById("count-title").textContent = `التعليقات (${comments.length})`;
+      container.innerHTML = comments.map(c => `
+        <div class="comment-card" id="comment-${c.id}">
+          <div class="comment-header">
+            <div class="avatar">${c.avatar}</div>
+            <div class="comment-meta">
+              <h4>${c.name}</h4>
+              <p>📅 ${c.date}</p>
+            </div>
+          </div>
+          <span class="article-ref">📰 ${c.article}</span>
+          <p class="comment-text">${c.text}</p>
+          <div class="comment-actions">
+            <button class="action-btn like-btn ${c.liked ? 'liked' : ''}" onclick="toggleLike(${c.id})">
+              ${c.liked ? '❤️' : '🤍'} ${c.likes}
+            </button>
+            <button class="action-btn" onclick="replyTo('${c.name}')">↩️ رد</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function addComment() {
+      const name = document.getElementById("c-name").value.trim();
+      const text = document.getElementById("c-text").value.trim();
+      if (!name || !text) { alert("يرجى كتابة اسمك وتعليقك"); return; }
+      comments.unshift({
+        id: Date.now(), name, avatar: "👤", date: "الآن",
+        text, article: "عام", likes: 0, liked: false
+      });
+      document.getElementById("c-name").value = "";
+      document.getElementById("c-text").value = "";
+      renderComments();
+    }
+
+    function toggleLike(id) {
+      const c = comments.find(x => x.id === id);
+      if (!c) return;
+      c.liked = !c.liked;
+      c.likes += c.liked ? 1 : -1;
+      renderComments();
+    }
+
+    function replyTo(name) {
+      document.getElementById("c-text").value = `@${name} `;
+      document.getElementById("c-text").focus();
+      document.querySelector(".comment-form").scrollIntoView({ behavior: "smooth" });
+    }
+
+    renderComments();
+  </script>
+</body>
+</html>

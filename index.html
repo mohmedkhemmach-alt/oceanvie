@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>البيئة البحرية - أخبار وتقارير</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🌊</span>
+        <span>البيئة البحرية</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">الرئيسية</a></li>
+        <li><a href="news.html">الأخبار</a></li>
+        <li><a href="map.html">الخريطة</a></li>
+        <li><a href="chatbot.html">مساعد الذكاء الاصطناعي</a></li>
+        <li><a href="comments.html">التعليقات</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="lang-switcher">
+          <button onclick="setLang('ar')" class="lang-btn active">AR</button>
+          <button onclick="setLang('fr')" class="lang-btn">FR</button>
+          <button onclick="setLang('en')" class="lang-btn">EN</button>
+        </div>
+        <a href="login.html" class="btn-login">تسجيل الدخول</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <span class="hero-badge">🌊 أخبار عاجلة</span>
+      <h1>حماية المحيطات<br/>مسؤوليتنا المشتركة</h1>
+      <p>آخر الأخبار والتقارير العلمية حول البيئة البحرية، التلوث، وجهود الحفاظ على التنوع البيولوجي</p>
+      <div class="hero-btns">
+        <a href="news.html" class="btn-primary">استكشف الأخبار</a>
+        <a href="chatbot.html" class="btn-secondary">تحدث مع الذكاء الاصطناعي</a>
+      </div>
+    </div>
+    <div class="hero-wave">
+      <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="#f0f8ff"/></svg>
+    </div>
+  </section>
+
+  <!-- BREAKING NEWS TICKER -->
+  <div class="ticker-wrap">
+    <span class="ticker-label">عاجل</span>
+    <div class="ticker-track">
+      <span>🔴 ارتفاع درجة حرارة المحيطات بنسبة 2.1 درجة خلال العقد الماضي &nbsp;|&nbsp; 🔴 اكتشاف شعاب مرجانية جديدة في البحر الأحمر &nbsp;|&nbsp; 🔴 اجتماع دولي لمناقشة تلوث البلاستيك في المحيط الهادئ &nbsp;|&nbsp; 🔴 حملة تنظيف شواطئ المغرب تزيل 50 طناً من النفايات</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num">71%</div>
+          <div class="stat-label">من سطح الأرض مغطى بالمحيطات</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">8M</div>
+          <div class="stat-label">طن من البلاستيك يدخل المحيطات سنوياً</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">50%</div>
+          <div class="stat-label">من الشعاب المرجانية فقدت منذ 1950</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">2.4°C</div>
+          <div class="stat-label">ارتفاع متوسط حرارة المحيطات</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LATEST NEWS -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>آخر الأخبار</h2>
+        <a href="news.html" class="view-all">عرض الكل ←</a>
+      </div>
+      <div class="news-grid" id="news-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP PREVIEW -->
+  <section class="map-preview-section">
+    <div class="container">
+      <div class="map-preview-inner">
+        <div class="map-preview-text">
+          <h2>خريطة التلوث البحري التفاعلية</h2>
+          <p>استكشف مناطق التلوث البحري وجهود الحماية حول العالم من خلال خريطتنا التفاعلية المحدثة في الوقت الفعلي</p>
+          <a href="map.html" class="btn-primary">فتح الخريطة</a>
+        </div>
+        <div class="map-preview-img">
+          <div class="fake-map">
+            <div class="map-dot dot1"></div>
+            <div class="map-dot dot2"></div>
+            <div class="map-dot dot3"></div>
+            <div class="map-dot dot4"></div>
+            <span class="map-label">🗺️ خريطة تفاعلية</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI CHATBOT PREVIEW -->
+  <section class="section ai-section">
+    <div class="container">
+      <div class="ai-inner">
+        <div class="ai-chat-demo">
+          <div class="chat-bubble user">ما هي أسباب تبييض الشعاب المرجانية؟</div>
+          <div class="chat-bubble bot">🤖 تبييض الشعاب المرجانية يحدث بسبب ارتفاع درجات حرارة المياه، مما يجعل الشعاب تطرد الطحالب الرمزية التي تعيش فيها وتمنحها ألوانها وغذاءها...</div>
+          <div class="chat-bubble user">كيف يمكننا حمايتها؟</div>
+          <div class="chat-bubble bot typing">🤖 <span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+        <div class="ai-text">
+          <h2>مساعد الذكاء الاصطناعي البحري</h2>
+          <p>اسأل عن أي موضوع يتعلق بالبيئة البحرية، الأسماك، التلوث، أو المحيطات. مساعدنا الذكي يجيبك فوراً بالعربية أو الفرنسية أو الإنجليزية.</p>
+          <a href="chatbot.html" class="btn-primary">ابدأ المحادثة</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo">🌊 البيئة البحرية</div>
+          <p class="footer-desc">منصة إخبارية متخصصة في أخبار البيئة البحرية والمحيطات</p>
+        </div>
+        <div>
+          <h4>روابط سريعة</h4>
+          <ul>
+            <li><a href="news.html">الأخبار</a></li>
+            <li><a href="map.html">الخريطة التفاعلية</a></li>
+            <li><a href="chatbot.html">الذكاء الاصطناعي</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>تواصل معنا</h4>
+          <ul>
+            <li>contact@marine-eco.ma</li>
+            <li>+212 5XX-XXXXXX</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 البيئة البحرية. جميع الحقوق محفوظة</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
